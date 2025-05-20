@@ -15,18 +15,18 @@ import io
 MPL_FONT_PROP = None
 
 # 首先清空可视化目录中的所有图片
-if os.path.exists('visualizations2'):
-    for file in os.listdir('visualizations2'):
+if os.path.exists('visualizations3'):
+    for file in os.listdir('visualizations3'):
         if file.endswith('.png'):
             try:
-                os.remove(os.path.join('visualizations2', file))
+                os.remove(os.path.join('visualizations3', file))
             except Exception as e:
                 print(f"无法删除文件 {file}: {e}")
 else:
     try:
-        os.makedirs('visualizations2')
+        os.makedirs('visualizations3')
     except Exception as e:
-        print(f"无法创建目录 visualizations2: {e}")
+        print(f"无法创建目录 visualizations3: {e}")
 
 # Pillow字体设置
 PILLOW_FONT_PATH = r"C:\Windows\Fonts\simkai.ttf" # Make sure this path is correct for your system
@@ -188,7 +188,7 @@ def plot_participants_growth():
 
     fig.tight_layout()
     
-    output_path = 'visualizations2/participants_growth.png'
+    output_path = 'visualizations3/participants_growth.png'
     plt.savefig(output_path, dpi=200, bbox_inches='tight')
 
     plt.close(fig)
@@ -254,7 +254,7 @@ def plot_growth_comparison():
     autolabel(rects2)
     
     fig.tight_layout()
-    plt.savefig('visualizations2/growth_comparison.png', dpi=200, bbox_inches='tight')
+    plt.savefig('visualizations3/growth_comparison.png', dpi=200, bbox_inches='tight')
     plt.close(fig)
 
 # 3. 参保结构可视化 (This plot relies entirely on Matplotlib for text)
@@ -263,8 +263,7 @@ def plot_insurance_structure():
     
     df = pd.DataFrame({
         '城镇企业职工': urban_workers_pct[1:],
-        '城乡居民': rural_residents_pct[1:],
-        '机关事业单位': govt_workers_pct[1:]
+        '城乡居民': rural_residents_pct[1:]
     }, index=years_with_data_str)
     
     df.dropna(how='all', inplace=True)
@@ -274,7 +273,7 @@ def plot_insurance_structure():
 
     fig, ax = plt.subplots(figsize=(8, 5))
     df.plot(kind='bar', stacked=True, ax=ax, 
-            color=['#5975a4', '#cc8963', '#5f9e6e'], alpha=0.8)
+            color=['#5975a4', '#cc8963'], alpha=0.8)
     
     title_text = f'福州市基本养老保险参保结构变化 ({df.index[0]}-{df.index[-1]})'
     xlabel_text = '年份'
@@ -284,14 +283,14 @@ def plot_insurance_structure():
         ax.set_title(title_text, fontproperties=MPL_FONT_PROP)
         ax.set_xlabel(xlabel_text, fontproperties=MPL_FONT_PROP)
         ax.set_ylabel(ylabel_text, fontproperties=MPL_FONT_PROP)
-        ax.legend(title='参保类型', prop=MPL_FONT_PROP)
+        ax.legend(prop=MPL_FONT_PROP)
         ax.set_xticklabels(df.index, rotation=0, fontproperties=MPL_FONT_PROP if MPL_FONT_PROP else None)
         for label in ax.get_yticklabels(): label.set_fontproperties(MPL_FONT_PROP)
     else:
         ax.set_title(title_text)
         ax.set_xlabel(xlabel_text)
         ax.set_ylabel(ylabel_text)
-        ax.legend(title='参保类型')
+        ax.legend()
         ax.set_xticklabels(df.index, rotation=0)
         
     ax.set_ylim(0, 100)
@@ -303,7 +302,7 @@ def plot_insurance_structure():
                      fontsize=8, color='white', fontweight='bold')
     
     fig.tight_layout()
-    output_path = 'visualizations2/insurance_structure.png'
+    output_path = 'visualizations3/insurance_structure.png'
     fig.savefig(output_path, dpi=200, bbox_inches='tight')
     
     plt.close(fig)
@@ -312,8 +311,7 @@ def plot_insurance_structure():
 def plot_city_structure_comparison():
     df = pd.DataFrame({
         '城镇职工养老保险': urban_pct,
-        '城乡居民养老保险': rural_pct,
-        '机关事业单位养老保险': govt_pct
+        '城乡居民养老保险': rural_pct
     }, index=cities_compare) 
     
     if df.empty:
@@ -322,7 +320,7 @@ def plot_city_structure_comparison():
 
     fig, ax = plt.subplots(figsize=(8, 5))
     df.plot(kind='bar', stacked=True, ax=ax, 
-            color=['#5975a4', '#cc8963', '#5f9e6e'], alpha=0.8)
+            color=['#5975a4', '#cc8963'], alpha=0.8)
     
     title_text = '福州市与领先城市参保结构对比(2024年)'
     xlabel_text = '城市/地区'
@@ -334,13 +332,13 @@ def plot_city_structure_comparison():
         ax.set_ylabel(ylabel_text, fontproperties=MPL_FONT_PROP)
         ax.set_xticklabels(df.index, rotation=0, fontproperties=MPL_FONT_PROP if MPL_FONT_PROP else None)
         for label in ax.get_yticklabels(): label.set_fontproperties(MPL_FONT_PROP)
-        ax.legend(title='参保类型', prop=MPL_FONT_PROP)
+        ax.legend(prop=MPL_FONT_PROP)
     else:
         ax.set_title(title_text)
         ax.set_xlabel(xlabel_text)
         ax.set_ylabel(ylabel_text)
         ax.set_xticklabels(df.index, rotation=0)
-        ax.legend(title='参保类型')
+        ax.legend()
         
     ax.set_ylim(0, 105)
     
@@ -351,7 +349,7 @@ def plot_city_structure_comparison():
                      fontsize=8, color='white', fontweight='bold')
 
     fig.tight_layout()
-    output_path = 'visualizations2/city_structure_comparison.png'
+    output_path = 'visualizations3/city_structure_comparison.png'
     fig.savefig(output_path, dpi=200, bbox_inches='tight')
 
     plt.close(fig)
@@ -360,7 +358,7 @@ def plot_city_structure_comparison():
 def plot_pension_comparison():
     cities_pension_data = {
         '福州市': fuzhou_pension, '全国平均': national_pension,
-        '北京': beijing_pension, '上海': shanghai_pension, '广州': guangzhou_pension
+        '北京': beijing_pension, '上海': shanghai_pension
     }
     # Ensure years are suitable for indexing if they are not already numeric/datetime
     df_years = [int(y) for y in years] # Or pd.to_datetime(years, format='%Y')
@@ -419,7 +417,7 @@ def plot_pension_comparison():
         for label in ax.get_yticklabels(): label.set_fontproperties(MPL_FONT_PROP)
             
     fig.tight_layout()
-    output_path = 'visualizations2/pension_comparison.png'
+    output_path = 'visualizations3/pension_comparison.png'
     fig.savefig(output_path, dpi=200, bbox_inches='tight')
 
     plt.close(fig)
@@ -468,7 +466,7 @@ def plot_pension_adjustment():
                     fontsize=9, ha='center', va='bottom')
 
     fig.tight_layout()
-    output_path = 'visualizations2/pension_adjustment.png'
+    output_path = 'visualizations3/pension_adjustment.png'
     fig.savefig(output_path, dpi=200, bbox_inches='tight')
 
     plt.close(fig)
@@ -519,7 +517,7 @@ def plot_fund_contribution():
                  va='center', ha='left', fontsize=9)
 
     fig.tight_layout(pad=2.0) 
-    output_path = 'visualizations2/fund_contribution.png'
+    output_path = 'visualizations3/fund_contribution.png'
     fig.savefig(output_path, dpi=200, bbox_inches='tight')
 
     plt.close(fig)
@@ -549,7 +547,7 @@ if __name__ == "__main__":
     plot_fund_contribution()
     print("7/7 - 基金贡献图表已生成")
     
-    print("图表生成完成！所有图表已保存到 'visualizations2' 目录下。")
+    print("图表生成完成！所有图表已保存到 'visualizations3' 目录下。")
     print("请检查脚本运行时的【控制台输出信息】，特别是关于字体加载的部分。")
     print(f"当前Pillow及Matplotlib尝试使用的字体路径是: {PILLOW_FONT_PATH}")
     if MPL_FONT_PROP:
