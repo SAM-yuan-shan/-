@@ -15,18 +15,18 @@ import io
 MPL_FONT_PROP = None
 
 # 首先清空可视化目录中的所有图片
-if os.path.exists('visualizations'):
-    for file in os.listdir('visualizations'):
+if os.path.exists('visualizations2'):
+    for file in os.listdir('visualizations2'):
         if file.endswith('.png'):
             try:
-                os.remove(os.path.join('visualizations', file))
+                os.remove(os.path.join('visualizations2', file))
             except Exception as e:
                 print(f"无法删除文件 {file}: {e}")
 else:
     try:
-        os.makedirs('visualizations')
+        os.makedirs('visualizations2')
     except Exception as e:
-        print(f"无法创建目录 visualizations: {e}")
+        print(f"无法创建目录 visualizations2: {e}")
 
 # Pillow字体设置
 PILLOW_FONT_PATH = r"C:\Windows\Fonts\simkai.ttf" # Make sure this path is correct for your system
@@ -170,66 +170,27 @@ def plot_participants_growth():
     if MPL_FONT_PROP: # Apply font to numeric tick labels for style consistency
         for label in ax2.get_yticklabels(): label.set_fontproperties(MPL_FONT_PROP)
     
-    fig.tight_layout()
-    
-    output_path = 'visualizations/participants_growth.png'
-    plt.savefig(output_path, dpi=200, bbox_inches='tight')
+    # Add Matplotlib title, xlabel, ylabel for ax2
+    ax1.set_title("福州市基本养老保险参保人数及增长率(2020-2024)", fontproperties=MPL_FONT_PROP if MPL_FONT_PROP else None)
+    ax1.set_xlabel("年份", fontproperties=MPL_FONT_PROP if MPL_FONT_PROP else None)
+    ax2.set_ylabel("同比增长率(%)", color=color2, fontproperties=MPL_FONT_PROP if MPL_FONT_PROP else None)
+            
+    color2 = 'tab:red'
 
-    # Pillow drawing (largely unchanged, ensure FONT_PILLOW_* are valid)
-    img = Image.open(output_path).convert("RGBA")
-    draw = ImageDraw.Draw(img)
-    fig_width_px, fig_height_px = img.size
-    color1_rgb = mpl.colors.to_rgb(color1) + (1,) 
-    color1_pil = tuple(int(c*255) for c in color1_rgb) 
-    color2_rgb = mpl.colors.to_rgb(color2) + (1,)
-    color2_pil = tuple(int(c*255) for c in color2_rgb)
-
-    title_text = "福州市基本养老保险参保人数及增长率(2020-2024)"
-    text_bbox = draw.textbbox((0, 0), title_text, font=FONT_PILLOW_TITLE)
-    text_width = text_bbox[2] - text_bbox[0]
-    x = (fig_width_px - text_width) / 2
-    y = 10
-    draw.text((x, y), title_text, font=FONT_PILLOW_TITLE, fill=(0,0,0,255))
-
-    xlabel_text = "年份"
-    text_bbox = draw.textbbox((0, 0), xlabel_text, font=FONT_PILLOW_LABEL)
-    text_width = text_bbox[2] - text_bbox[0]
-    text_height = text_bbox[3] - text_bbox[1]
-    x = (fig_width_px - text_width) / 2
-    y_xlabel = fig_height_px - text_height - 20 
-    draw.text((x, y_xlabel), xlabel_text, font=FONT_PILLOW_LABEL, fill=(0,0,0,255))
-    
-    ylabel_ax2_text = "同比增长率(%)"
-    text_bbox_y2 = draw.textbbox((0,0), ylabel_ax2_text, font=FONT_PILLOW_LABEL)
-    text_width_y2 = text_bbox_y2[2] - text_bbox_y2[0]
-    text_height_y2 = text_bbox_y2[3] - text_bbox_y2[1]
-    x_y2 = fig_width_px - text_width_y2 - 15 
-    y_y2 = (fig_height_px - text_height_y2) / 2
-    draw.text((x_y2, y_y2), ylabel_ax2_text, font=FONT_PILLOW_LABEL, fill=color2_pil)
-
+    # Add data labels using Matplotlib
     for i, v in enumerate(participants):
         if v is not None:
-            text_content = f'{v}'
-            display_coords = ax1.transData.transform((years[i], v + 5)) # Offset for label placement
-            pixel_x, pixel_y = display_coords[0], fig_height_px - display_coords[1]
-            text_bbox_ann = draw.textbbox((0,0), text_content, font=FONT_PILLOW_ANNOTATION)
-            text_w_ann, text_h_ann = text_bbox_ann[2]-text_bbox_ann[0], text_bbox_ann[3]-text_bbox_ann[1]
-            adj_pixel_x = pixel_x - text_w_ann / 2
-            adj_pixel_y = pixel_y - text_h_ann 
-            draw.text((adj_pixel_x, adj_pixel_y), text_content, font=FONT_PILLOW_ANNOTATION, fill=color1_pil)
+            ax1.text(years[i], v + 5, f'{v}', fontproperties=MPL_FONT_PROP if MPL_FONT_PROP else None, color=color1, ha='center', va='bottom', fontsize=9)
 
-    for i, v_growth in enumerate(growth_data): # Use distinct variable name
+    for i, v_growth in enumerate(growth_data):
         if v_growth is not None:
-            text_content = f'{v_growth}%'
-            display_coords = ax2.transData.transform((growth_years[i], v_growth + 0.3)) # Offset
-            pixel_x, pixel_y = display_coords[0], fig_height_px - display_coords[1]
-            text_bbox_ann = draw.textbbox((0,0), text_content, font=FONT_PILLOW_ANNOTATION)
-            text_w_ann, text_h_ann = text_bbox_ann[2]-text_bbox_ann[0], text_bbox_ann[3]-text_bbox_ann[1]
-            adj_pixel_x = pixel_x - text_w_ann / 2
-            adj_pixel_y = pixel_y - text_h_ann 
-            draw.text((adj_pixel_x, adj_pixel_y), text_content, font=FONT_PILLOW_ANNOTATION, fill=color2_pil)
+            ax2.text(growth_years[i], v_growth + 0.3, f'{v_growth}%', fontproperties=MPL_FONT_PROP if MPL_FONT_PROP else None, color=color2, ha='center', va='bottom', fontsize=9)
 
-    img.save(output_path)
+    fig.tight_layout()
+    
+    output_path = 'visualizations2/participants_growth.png'
+    plt.savefig(output_path, dpi=200, bbox_inches='tight')
+
     plt.close(fig)
 
 # 2. 增长率对比可视化 (This plot relies entirely on Matplotlib for text)
@@ -293,7 +254,7 @@ def plot_growth_comparison():
     autolabel(rects2)
     
     fig.tight_layout()
-    plt.savefig('visualizations/growth_comparison.png', dpi=200, bbox_inches='tight')
+    plt.savefig('visualizations2/growth_comparison.png', dpi=200, bbox_inches='tight')
     plt.close(fig)
 
 # 3. 参保结构可视化 (This plot relies entirely on Matplotlib for text)
@@ -319,50 +280,31 @@ def plot_insurance_structure():
     xlabel_text = '年份'
     ylabel_text = '占比(%)'
     
-    font_name_for_bar_label = MPL_FONT_PROP.get_name() if MPL_FONT_PROP else plt.rcParams['font.sans-serif'][0]
-
     if MPL_FONT_PROP:
         ax.set_title(title_text, fontproperties=MPL_FONT_PROP)
         ax.set_xlabel(xlabel_text, fontproperties=MPL_FONT_PROP)
         ax.set_ylabel(ylabel_text, fontproperties=MPL_FONT_PROP)
-        ax.legend(prop=MPL_FONT_PROP)
-        for label in ax.get_xticklabels(): label.set_fontproperties(MPL_FONT_PROP)
+        ax.legend(title='参保类型', prop=MPL_FONT_PROP)
+        ax.set_xticklabels(df.index, rotation=0, fontproperties=MPL_FONT_PROP if MPL_FONT_PROP else None)
         for label in ax.get_yticklabels(): label.set_fontproperties(MPL_FONT_PROP)
     else:
         ax.set_title(title_text)
         ax.set_xlabel(xlabel_text)
         ax.set_ylabel(ylabel_text)
-        ax.legend()
+        ax.legend(title='参保类型')
+        ax.set_xticklabels(df.index, rotation=0)
         
     ax.set_ylim(0, 100)
     
     for c in ax.containers:
         labels = [f'{v:.1f}%' if v is not None and v > 0.1 else '' for v in c.datavalues]
         ax.bar_label(c, labels=labels, label_type='center', 
-                     fontfamily=font_name_for_bar_label, # Use extracted family name
+                     fontproperties=MPL_FONT_PROP if MPL_FONT_PROP else None,
                      fontsize=8, color='white', fontweight='bold')
     
-    ax.legend(prop=MPL_FONT_PROP if MPL_FONT_PROP else None)
     fig.tight_layout()
-    output_path = 'visualizations/insurance_structure.png'
+    output_path = 'visualizations2/insurance_structure.png'
     fig.savefig(output_path, dpi=200, bbox_inches='tight')
-
-    # Pillow drawing for legend title
-    img = Image.open(output_path).convert("RGBA")
-    draw = ImageDraw.Draw(img)
-    fig_width_px, fig_height_px = img.size
-    
-    legend_title_text = "参保类型"
-    text_bbox_legend_title = draw.textbbox((0,0), legend_title_text, font=FONT_PILLOW_LABEL)
-    legend_title_width = text_bbox_legend_title[2] - text_bbox_legend_title[0]
-    
-    # Estimate position for the legend title (e.g., top-right area)
-    # Using similar estimation as in plot_insurance_structure
-    x_legend_title = fig_width_px - legend_title_width - 150 
-    y_legend_title = 60 
-
-    draw.text((x_legend_title, y_legend_title), legend_title_text, font=FONT_PILLOW_LABEL, fill=(0,0,0,255))
-    img.save(output_path)
     
     plt.close(fig)
 
@@ -386,49 +328,31 @@ def plot_city_structure_comparison():
     xlabel_text = '城市/地区'
     ylabel_text = '占比(%)'
 
-    font_name_for_bar_label = MPL_FONT_PROP.get_name() if MPL_FONT_PROP else plt.rcParams['font.sans-serif'][0]
-
     if MPL_FONT_PROP:
         ax.set_title(title_text, fontproperties=MPL_FONT_PROP)
         ax.set_xlabel(xlabel_text, fontproperties=MPL_FONT_PROP)
         ax.set_ylabel(ylabel_text, fontproperties=MPL_FONT_PROP)
-        for label in ax.get_xticklabels(): label.set_fontproperties(MPL_FONT_PROP)
+        ax.set_xticklabels(df.index, rotation=0, fontproperties=MPL_FONT_PROP if MPL_FONT_PROP else None)
         for label in ax.get_yticklabels(): label.set_fontproperties(MPL_FONT_PROP)
-        ax.legend(prop=MPL_FONT_PROP)
+        ax.legend(title='参保类型', prop=MPL_FONT_PROP)
     else:
         ax.set_title(title_text)
         ax.set_xlabel(xlabel_text)
         ax.set_ylabel(ylabel_text)
-        ax.legend()
+        ax.set_xticklabels(df.index, rotation=0)
+        ax.legend(title='参保类型')
         
     ax.set_ylim(0, 105)
     
     for c in ax.containers:
         labels = [f'{v:.1f}%' if v is not None and v > 0.1 else '' for v in c.datavalues]
         ax.bar_label(c, labels=labels, label_type='center', 
-                     fontfamily=font_name_for_bar_label, # Use extracted family name
+                     fontproperties=MPL_FONT_PROP if MPL_FONT_PROP else None,
                      fontsize=8, color='white', fontweight='bold')
 
     fig.tight_layout()
-    output_path = 'visualizations/city_structure_comparison.png'
+    output_path = 'visualizations2/city_structure_comparison.png'
     fig.savefig(output_path, dpi=200, bbox_inches='tight')
-
-    # Pillow drawing for legend title
-    img = Image.open(output_path).convert("RGBA")
-    draw = ImageDraw.Draw(img)
-    fig_width_px, fig_height_px = img.size
-    
-    legend_title_text = "参保类型"
-    text_bbox_legend_title = draw.textbbox((0,0), legend_title_text, font=FONT_PILLOW_LABEL)
-    legend_title_width = text_bbox_legend_title[2] - text_bbox_legend_title[0]
-    
-    # Estimate position for the legend title (e.g., top-right area)
-    # Using similar estimation as in plot_insurance_structure
-    x_legend_title = fig_width_px - legend_title_width - 150 
-    y_legend_title = 60 
-
-    draw.text((x_legend_title, y_legend_title), legend_title_text, font=FONT_PILLOW_LABEL, fill=(0,0,0,255))
-    img.save(output_path)
 
     plt.close(fig)
 
@@ -474,78 +398,30 @@ def plot_pension_comparison():
         plt.close(fig)
         return
 
+    # Add Matplotlib title, xlabel, ylabel, legend
+    ax.set_title("各地区企业退休人员人均养老金水平对比", fontproperties=MPL_FONT_PROP if MPL_FONT_PROP else None)
+    ax.set_xlabel("年份", fontproperties=MPL_FONT_PROP if MPL_FONT_PROP else None)
+    ax.set_ylabel("人均养老金(元/月)", fontproperties=MPL_FONT_PROP if MPL_FONT_PROP else None)
+    ax.legend(prop=MPL_FONT_PROP if MPL_FONT_PROP else None)
+
     ax.grid(True, linestyle='--', alpha=0.7)
-    if ax.get_legend() is not None: ax.get_legend().remove() # Pillow will draw legend
+    # if ax.get_legend() is not None: ax.get_legend().remove() # Pillow will draw legend -> No longer needed
     
+    # Add data labels using Matplotlib
+    for line_info in plotted_lines_info:
+        ax.text(line_info['last_year'] + 0.1, line_info['last_value'], f" {line_info['last_value']:.0f}元", 
+                fontproperties=MPL_FONT_PROP if MPL_FONT_PROP else None, 
+                color=line_info['color_mpl'], va='center', fontsize=9)
+
     # Apply font to tick labels (years and pension values)
     if MPL_FONT_PROP:
         for label in ax.get_xticklabels(): label.set_fontproperties(MPL_FONT_PROP)
         for label in ax.get_yticklabels(): label.set_fontproperties(MPL_FONT_PROP)
             
     fig.tight_layout()
-    output_path = 'visualizations/pension_comparison.png'
+    output_path = 'visualizations2/pension_comparison.png'
     fig.savefig(output_path, dpi=200, bbox_inches='tight')
 
-    # Pillow drawing (largely unchanged)
-    img = Image.open(output_path).convert("RGBA")
-    draw = ImageDraw.Draw(img)
-    fig_width_px, fig_height_px = img.size
-
-    title_text = "各地区企业退休人员人均养老金水平对比"
-    text_bbox = draw.textbbox((0,0), title_text, font=FONT_PILLOW_TITLE)
-    text_width = text_bbox[2] - text_bbox[0]
-    x_title = (fig_width_px - text_width) / 2
-    y_title = 10
-    draw.text((x_title, y_title), title_text, font=FONT_PILLOW_TITLE, fill=(0,0,0,255))
-
-    xlabel_text = "年份"
-    text_bbox = draw.textbbox((0,0), xlabel_text, font=FONT_PILLOW_LABEL)
-    text_width_xlabel = text_bbox[2] - text_bbox[0] # Renamed
-    text_height_xlabel = text_bbox[3] - text_bbox[1] # Renamed
-    x_xlabel_draw = (fig_width_px - text_width_xlabel) / 2 # Renamed
-    y_xlabel_draw = fig_height_px - text_height_xlabel - 20 # Renamed
-    draw.text((x_xlabel_draw, y_xlabel_draw), xlabel_text, font=FONT_PILLOW_LABEL, fill=(0,0,0,255))
-
-    ylabel_text = "人均养老金(元/月)"
-    # For non-rotated Y-axis label with Pillow:
-    text_bbox_y = draw.textbbox((0,0), ylabel_text, font=FONT_PILLOW_LABEL)
-    text_width_y = text_bbox_y[2] - text_bbox_y[0]
-    text_height_y = text_bbox_y[3] - text_bbox_y[1]
-    x_ylabel_draw = 10 # Left margin
-    y_ylabel_draw = (fig_height_px - text_height_y) / 2
-    # To rotate, you'd need to draw text to a separate image and rotate it.
-    # For simplicity, let's draw it horizontally or assume Matplotlib handled it if it were there.
-    # Since we are using Pillow, we can draw it horizontally here:
-    draw.text((x_ylabel_draw, y_ylabel_draw), ylabel_text, font=FONT_PILLOW_LABEL, fill=(0,0,0,255))
-
-
-    for line_info in plotted_lines_info:
-        text_content = f" {line_info['last_value']:.0f}元"
-        display_coords = ax.transData.transform((line_info['last_year'] + 0.1, line_info['last_value']))
-        pixel_x, pixel_y = display_coords[0], fig_height_px - display_coords[1]
-        text_bbox_ann = draw.textbbox((0,0), text_content, font=FONT_PILLOW_ANNOTATION)
-        text_w_ann, text_h_ann = text_bbox_ann[2]-text_bbox_ann[0], text_bbox_ann[3]-text_bbox_ann[1]
-        adj_pixel_x = pixel_x 
-        adj_pixel_y = pixel_y - text_h_ann / 2
-        draw.text((adj_pixel_x, adj_pixel_y), text_content, font=FONT_PILLOW_ANNOTATION, fill=line_info['color_pil'])
-
-    legend_y_start, legend_x_start = 35, 35
-    line_height, line_segment_length = 20, 15
-    marker_size_pil, text_spacing = 5, 5
-    for idx, line_info in enumerate(plotted_lines_info):
-        y_pos_center = legend_y_start + idx * line_height + line_height / 2
-        draw.line([(legend_x_start, y_pos_center), (legend_x_start + line_segment_length, y_pos_center)], fill=line_info['color_pil'], width=2)
-        draw.ellipse([
-            legend_x_start + line_segment_length/2 - marker_size_pil/2, y_pos_center - marker_size_pil/2, 
-            legend_x_start + line_segment_length/2 + marker_size_pil/2, y_pos_center + marker_size_pil/2
-            ], fill=line_info['color_pil'])
-        # Get text bounding box for vertical alignment
-        legend_text_bbox = FONT_PILLOW_LEGEND.getbbox(line_info['name'])
-        legend_text_height = legend_text_bbox[3] - legend_text_bbox[1]
-        text_y_adj = y_pos_center - legend_text_height / 2
-        draw.text((legend_x_start + line_segment_length + text_spacing, text_y_adj), line_info['name'], font=FONT_PILLOW_LEGEND, fill=line_info['color_pil'])
-
-    img.save(output_path)
     plt.close(fig)
 
 # 6. 养老金调整水平可视化
@@ -562,77 +438,39 @@ def plot_pension_adjustment():
     ax.plot(plot_adj_years, plot_adj_values, marker='o', linestyle='-', color=line_color_mpl, linewidth=2)
     ax.grid(True, linestyle='--', alpha=0.7)
     
-    if MPL_FONT_PROP: # Apply to tick labels
-        for label in ax.get_xticklabels(): label.set_fontproperties(MPL_FONT_PROP)
+    # Add Matplotlib title, xlabel, ylabel
+    ax.set_title("全国基本养老金调整水平变化趋势", fontproperties=MPL_FONT_PROP if MPL_FONT_PROP else None)
+    ax.set_xlabel("年份", fontproperties=MPL_FONT_PROP if MPL_FONT_PROP else None)
+    ax.set_ylabel("调整水平(%)", fontproperties=MPL_FONT_PROP if MPL_FONT_PROP else None)
+
+    # Set X-axis ticks to be integer years
+    ax.set_xticks(plot_adj_years)
+    ax.set_xticklabels([str(y) for y in plot_adj_years], fontproperties=MPL_FONT_PROP if MPL_FONT_PROP else None)
+
+    if MPL_FONT_PROP: # Apply to Y tick labels
         for label in ax.get_yticklabels(): label.set_fontproperties(MPL_FONT_PROP)
 
-    fig.tight_layout()
-    output_path = 'visualizations/pension_adjustment.png'
-    fig.savefig(output_path, dpi=200, bbox_inches='tight')
-
-    # Pillow drawing (largely unchanged)
-    img = Image.open(output_path).convert("RGBA")
-    draw = ImageDraw.Draw(img)
-    fig_width_px, fig_height_px = img.size
-    line_color_pil = tuple(int(c*255) for c in mpl.colors.to_rgb(line_color_mpl) + (1,))
-    arrow_color_pil = (0,0,0,255)
-
-    title_text = "全国基本养老金调整水平变化趋势"
-    text_bbox_title = draw.textbbox((0,0), title_text, font=FONT_PILLOW_TITLE) # Renamed
-    text_width_title = text_bbox_title[2] - text_bbox_title[0] # Renamed
-    x_title_draw = (fig_width_px - text_width_title) / 2 # Renamed
-    y_title_draw = 10 # Renamed
-    draw.text((x_title_draw, y_title_draw), title_text, font=FONT_PILLOW_TITLE, fill=(0,0,0,255))
-
-    xlabel_text = "年份"
-    text_bbox_xlabel = draw.textbbox((0,0), xlabel_text, font=FONT_PILLOW_LABEL)
-    text_width_xlabel_adj = text_bbox_xlabel[2] - text_bbox_xlabel[0] # Renamed
-    text_height_xlabel_adj = text_bbox_xlabel[3] - text_bbox_xlabel[1] # Renamed
-    x_xlabel_adj_draw = (fig_width_px - text_width_xlabel_adj) / 2 # Renamed
-    y_xlabel_adj_draw = fig_height_px - text_height_xlabel_adj - 20 # Renamed
-    draw.text((x_xlabel_adj_draw, y_xlabel_adj_draw), xlabel_text, font=FONT_PILLOW_LABEL, fill=(0,0,0,255))
-
-    ylabel_text = "调整水平(%)"
-    text_bbox_ylabel = draw.textbbox((0,0), ylabel_text, font=FONT_PILLOW_LABEL)
-    text_width_ylabel_adj = text_bbox_ylabel[2] - text_bbox_ylabel[0]
-    text_height_ylabel_adj = text_bbox_ylabel[3] - text_bbox_ylabel[1]
-    x_ylabel_adj_draw = 10 
-    y_ylabel_adj_draw = (fig_height_px - text_height_ylabel_adj) / 2 
-    draw.text((x_ylabel_adj_draw, y_ylabel_adj_draw), ylabel_text, font=FONT_PILLOW_LABEL, fill=(0,0,0,255))
-
-
+    # Add data labels and annotation using Matplotlib
     for yr, val in valid_pension_adj_data:
-        text_content = f'{val}%'
-        display_coords = ax.transData.transform((yr, val + 0.1))
-        pixel_x, pixel_y = display_coords[0], fig_height_px - display_coords[1]
-        text_bbox_ann = draw.textbbox((0,0), text_content, font=FONT_PILLOW_ANNOTATION)
-        text_w_ann, text_h_ann = text_bbox_ann[2]-text_bbox_ann[0], text_bbox_ann[3]-text_bbox_ann[1]
-        adj_pixel_x = pixel_x - text_w_ann / 2
-        adj_pixel_y = pixel_y - text_h_ann 
-        draw.text((adj_pixel_x, adj_pixel_y), text_content, font=FONT_PILLOW_ANNOTATION, fill=line_color_pil)
-
+        ax.text(yr, val + 0.05, f'{val}%', fontproperties=MPL_FONT_PROP if MPL_FONT_PROP else None, color=line_color_mpl, ha='center', va='bottom', fontsize=9)
+    
     if len(valid_pension_adj_data) >= 3:
         mid_point_year, mid_point_value = valid_pension_adj_data[len(valid_pension_adj_data)//2]
         start_point_year, start_point_value = valid_pension_adj_data[0]
         annot_text = '养老金调整水平总体呈逐步调整趋势'
-        
-        xy_display = ax.transData.transform((mid_point_year, mid_point_value))
         xytext_y_val = start_point_value + 0.5 if start_point_value is not None else mid_point_value
-        xytext_display = ax.transData.transform((start_point_year, xytext_y_val ))
-
-        pil_xy = (xy_display[0], fig_height_px - xy_display[1])
-        pil_xytext = (xytext_display[0], fig_height_px - xytext_display[1])
-
-        draw.line([pil_xy, pil_xytext], fill=arrow_color_pil, width=2) 
-        # Simplified arrow head by just placing text. For a real arrowhead, draw a polygon.
         
-        text_bbox_arr = draw.textbbox((0,0), annot_text, font=FONT_PILLOW_ANNOTATION)
-        text_w_arr, text_h_arr = text_bbox_arr[2]-text_bbox_arr[0], text_bbox_arr[3]-text_bbox_arr[1]
-        adj_pil_xytext_x = pil_xytext[0] - text_w_arr / 2
-        adj_pil_xytext_y = pil_xytext[1] - text_h_arr / 2 
-        draw.text((adj_pil_xytext_x, adj_pil_xytext_y), annot_text, font=FONT_PILLOW_ANNOTATION, fill=arrow_color_pil)
+        ax.annotate(annot_text, 
+                    xy=(mid_point_year, mid_point_value), 
+                    xytext=(start_point_year, xytext_y_val ),
+                    arrowprops=dict(facecolor='black', shrink=0.05, width=0.5, headwidth=4, connectionstyle="arc3,rad=.2"),
+                    fontproperties=MPL_FONT_PROP if MPL_FONT_PROP else None, 
+                    fontsize=9, ha='center', va='bottom')
 
-    img.save(output_path)
+    fig.tight_layout()
+    output_path = 'visualizations2/pension_adjustment.png'
+    fig.savefig(output_path, dpi=200, bbox_inches='tight')
+
     plt.close(fig)
 
 # 7. 基金贡献可视化
@@ -659,73 +497,31 @@ def plot_fund_contribution():
     ax1.invert_yaxis() 
     ax2.invert_yaxis() 
 
-    fig.tight_layout(pad=2.0) # Increased padding for titles
-    output_path = 'visualizations/fund_contribution.png'
-    fig.savefig(output_path, dpi=200, bbox_inches='tight')
+    # Add Matplotlib titles and xlabels
+    ax1.set_title("养老保险基金主要贡献省份(估算, 2023年)", fontproperties=MPL_FONT_PROP if MPL_FONT_PROP else None)
+    ax1.set_xlabel("贡献金额(亿元)", fontproperties=MPL_FONT_PROP if MPL_FONT_PROP else None)
+    ax2.set_title("养老保险基金主要受益省份(估算, 2023年)", fontproperties=MPL_FONT_PROP if MPL_FONT_PROP else None)
+    ax2.set_xlabel("获得金额(亿元)", fontproperties=MPL_FONT_PROP if MPL_FONT_PROP else None)
 
-    # Pillow drawing (largely unchanged)
-    img = Image.open(output_path).convert("RGBA")
-    draw = ImageDraw.Draw(img)
-    fig_width_px, fig_height_px = img.size
-    subplot_width_approx = fig_width_px / 2
-
-    title1_text = "养老保险基金主要贡献省份(估算, 2023年)"
-    text_bbox1 = draw.textbbox((0,0), title1_text, font=FONT_PILLOW_TITLE)
-    text_width1 = text_bbox1[2] - text_bbox1[0]
-    x_title1 = subplot_width_approx / 2 - text_width1 / 2
-    y_title_shared = 15 # Adjusted y for title
-    draw.text((max(5, x_title1), y_title_shared), title1_text, font=FONT_PILLOW_TITLE, fill=(0,0,0,255)) # max(5,..) to avoid negative x
-
-    title2_text = "养老保险基金主要受益省份(估算, 2023年)"
-    text_bbox2 = draw.textbbox((0,0), title2_text, font=FONT_PILLOW_TITLE)
-    text_width2 = text_bbox2[2] - text_bbox2[0]
-    x_title2 = subplot_width_approx + (subplot_width_approx / 2 - text_width2 / 2)
-    draw.text((max(subplot_width_approx + 5, x_title2), y_title_shared), title2_text, font=FONT_PILLOW_TITLE, fill=(0,0,0,255))
-
-
-    xlabel1_text = "贡献金额(亿元)"
-    text_bbox_xlabel1 = draw.textbbox((0,0), xlabel1_text, font=FONT_PILLOW_LABEL)
-    text_width_xlabel1 = text_bbox_xlabel1[2]-text_bbox_xlabel1[0]
-    text_height_xlabel1 = text_bbox_xlabel1[3]-text_bbox_xlabel1[1] # Use this for consistent y positioning
-    y_xlabel_shared = fig_height_px - text_height_xlabel1 - 25 
-    x_xlabel1_draw = subplot_width_approx / 2 - text_width_xlabel1 / 2 # Renamed
-    draw.text((max(5,x_xlabel1_draw), y_xlabel_shared), xlabel1_text, font=FONT_PILLOW_LABEL, fill=(0,0,0,255))
-
-    xlabel2_text = "获得金额(亿元)"
-    text_bbox_xlabel2 = draw.textbbox((0,0), xlabel2_text, font=FONT_PILLOW_LABEL)
-    text_width_xlabel2 = text_bbox_xlabel2[2]-text_bbox_xlabel2[0]
-    x_xlabel2_draw = subplot_width_approx + (subplot_width_approx / 2 - text_width_xlabel2 / 2) # Renamed
-    draw.text((max(subplot_width_approx+5, x_xlabel2_draw), y_xlabel_shared), xlabel2_text, font=FONT_PILLOW_LABEL, fill=(0,0,0,255))
-    
+    # Add data labels using Matplotlib
     for i, rect in enumerate(ax1.patches):
         value = contributions[i] 
         if value is None: continue
-        text_content = f' {value}亿元'
-        data_x = rect.get_width() * 1.01 
-        data_y = rect.get_y() + rect.get_height() / 2
-        display_coords = ax1.transData.transform((data_x, data_y))
-        pixel_x, pixel_y = display_coords[0], fig_height_px - display_coords[1]
-        text_bbox_ann = draw.textbbox((0,0), text_content, font=FONT_PILLOW_ANNOTATION)
-        text_h_ann = text_bbox_ann[3]-text_bbox_ann[1]
-        adj_pixel_x = pixel_x
-        adj_pixel_y = pixel_y - text_h_ann / 2
-        draw.text((adj_pixel_x, adj_pixel_y), text_content, font=FONT_PILLOW_ANNOTATION, fill=(0,0,0,255))
+        ax1.text(rect.get_width() + 5, rect.get_y() + rect.get_height() / 2, 
+                 f' {value}亿元', fontproperties=MPL_FONT_PROP if MPL_FONT_PROP else None, 
+                 va='center', ha='left', fontsize=9)
 
     for i, rect in enumerate(ax2.patches):
         value = benefits[i]
         if value is None: continue
-        text_content = f' {value}亿元'
-        data_x = rect.get_width() * 1.01
-        data_y = rect.get_y() + rect.get_height() / 2
-        display_coords = ax2.transData.transform((data_x, data_y))
-        pixel_x, pixel_y = display_coords[0], fig_height_px - display_coords[1]
-        text_bbox_ann = draw.textbbox((0,0), text_content, font=FONT_PILLOW_ANNOTATION)
-        text_h_ann = text_bbox_ann[3]-text_bbox_ann[1]
-        adj_pixel_x = pixel_x
-        adj_pixel_y = pixel_y - text_h_ann / 2
-        draw.text((adj_pixel_x, adj_pixel_y), text_content, font=FONT_PILLOW_ANNOTATION, fill=(0,0,0,255))
+        ax2.text(rect.get_width() + 5, rect.get_y() + rect.get_height() / 2, 
+                 f' {value}亿元', fontproperties=MPL_FONT_PROP if MPL_FONT_PROP else None, 
+                 va='center', ha='left', fontsize=9)
 
-    img.save(output_path)
+    fig.tight_layout(pad=2.0) 
+    output_path = 'visualizations2/fund_contribution.png'
+    fig.savefig(output_path, dpi=200, bbox_inches='tight')
+
     plt.close(fig)
 
 # 执行所有可视化函数
@@ -753,7 +549,7 @@ if __name__ == "__main__":
     plot_fund_contribution()
     print("7/7 - 基金贡献图表已生成")
     
-    print("图表生成完成！所有图表已保存到 'visualizations' 目录下。")
+    print("图表生成完成！所有图表已保存到 'visualizations2' 目录下。")
     print("请检查脚本运行时的【控制台输出信息】，特别是关于字体加载的部分。")
     print(f"当前Pillow及Matplotlib尝试使用的字体路径是: {PILLOW_FONT_PATH}")
     if MPL_FONT_PROP:
