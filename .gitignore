@@ -1,0 +1,5 @@
+visualizations/
+visualizations2/
+__pycache__/
+*.pyc
+*.DS_Store 
